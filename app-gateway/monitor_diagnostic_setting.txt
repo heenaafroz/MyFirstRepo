@@ -1,0 +1,39 @@
+# Enable Diagnostic setting ON APPGW
+
+resource "azurerm_monitor_diagnostic_setting" "log_analytics_diagnostic_appgw_primary" {
+  name               = "diagnostic-appgw"
+  target_resource_id = azurerm_application_gateway.appgw.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.workspace.id
+
+  dynamic "log" {
+    for_each = [
+      "ApplicationGatewayAccessLog",
+      "ApplicationGatewayPerformanceLog",
+      "ApplicationGatewayFirewallLog"
+    ]
+
+    content {
+      category = log.value
+      enabled  = true
+
+      retention_policy {
+        enabled = true
+        days    = 30
+      }
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+      days    = 30
+    }
+  }
+
+  depends_on = [
+    azurerm_application_gateway.appgw,
+  ]
+}

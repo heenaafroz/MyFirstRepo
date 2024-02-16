@@ -1,0 +1,15 @@
+tls.key
+
+**/terraform.exe
+
+### Terraform ###
+# Local .terraform directories
+**/.terraform/*
+**/.terraform*
+.terraform
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+*terraform*.ps1
+*terraform*.sh

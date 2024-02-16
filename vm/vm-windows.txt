@@ -1,0 +1,118 @@
+# Create VM interface
+
+resource "azurerm_network_interface" "windows-nic-poc" {
+  name                = "windows-nic-${var.name}"
+  resource_group_name = azurerm_resource_group.poctest.name
+  location            = azurerm_resource_group.poctest.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = data.azurerm_subnet.vm-subnet.id
+    private_ip_address_allocation = "Dynamic"    
+  }
+
+  #depends_on = [azurerm_subnet.vm-subnet-primary]
+}
+
+# Create VM's
+
+
+resource "azurerm_windows_virtual_machine" "windows-vm-primary" {
+  name                = "win-${var.prefix}"
+  resource_group_name = azurerm_resource_group.poctest.name
+  location            = azurerm_resource_group.poctest.location
+
+  size                = "Standard_B1s_v3"
+  admin_username      = "admin"
+  admin_password      = "Admin@123"
+
+
+  network_interface_ids = [
+    azurerm_network_interface.windows-nic-primary.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsDesktop"
+    offer     = "Windows-11"
+    sku       = "win11-22h2-avd"
+    version   = "latest"
+  }
+
+    #depends_on = [
+      #azurerm_subnet.vm-subnet-primary,
+      #azurerm_network_interface.windows-nic-primary,
+    #]
+}
+
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "schedule-windows-vm-primary" {
+  virtual_machine_id = azurerm_windows_virtual_machine.windows-vm-primary.id
+  location           = azurerm_resource_group.example.location
+  enabled            = false
+
+  daily_recurrence_time = "0000"
+  timezone              = "Israel Standard Time"
+
+
+  notification_settings {
+    enabled         = false
+   
+  }
+    depends_on = [
+      azurerm_windows_virtual_machine.windows-vm-primary,
+    ]
+ }
+
+
+#Extension BGInfo
+resource "azurerm_virtual_machine_extension" "BGInfo" { 
+  timeouts {
+    create = "120m"
+    delete = "120m"
+  }
+  name                = "bginfo-${var.prefix}"
+  #resource_group_name = data.azurerm_resource_group.primary.name
+  #location            = data.azurerm_resource_group.primary.location
+  virtual_machine_id = azurerm_windows_virtual_machine.windows-vm-primary.id
+  publisher            = "Microsoft.Compute"
+  type                 = "BGInfo"
+  type_handler_version = "2.1"
+  depends_on = ["azurerm_windows_virtual_machine.windows-vm-primary"]
+}
+
+resource "azurerm_virtual_machine_extension" "bootstrap-windows-vm-primary" {
+  timeouts {
+    create = "120m"
+    delete = "120m"
+  }
+  name                       = "bootstrap"
+  virtual_machine_id         = azurerm_windows_virtual_machine.windows-vm-primary.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.7"
+  auto_upgrade_minor_version = true
+
+  protected_settings = <<SETTINGS
+  {
+    "commandToExecute": "powershell -command \"[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('${base64encode(data.template_file.file-windows-vm-primary.rendered)}')) | Out-File -filepath bootstrap.ps1\" && powershell -ExecutionPolicy Unrestricted -File bootstrap.ps1"
+  }
+  SETTINGS
+ 
+   lifecycle {
+    ignore_changes = [
+      tags,
+      protected_settings
+    ]
+  }
+  depends_on                   = [azurerm_windows_virtual_machine.windows-vm-primary]
+  
+}
+
+data "template_file" "file-windows-vm-primary" {
+    template = "${file("files/bootstrap.ps1")}"
+} 
+
