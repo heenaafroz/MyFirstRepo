@@ -1,9 +1,9 @@
 terraform {
    backend "azurerm" {
-    storage_account_name = "csg10032003449542c0"
+    storage_account_name = "heenastore"
     container_name = "heenaaks"
     key = "heenastateaks.tfstate"
-    access_key = "D0WMeVN6yC60I/T1QUM0kutdQgpxnjUUkx3oUGWBfJbGvBOYP0XWoEyZYqXpzkQbvggLEE+oI8S7+AStP0uTJg=="
+    access_key = "X9pNzDvqwIlnKYh3/HaKZSeL1yUihU5H1qszjDmWaj3qdld8dEoCBp8zxqwSaygtJY9V5dqSVf0n+ASt7S0DTg=="
     
   }
     required_version = ">= 0.13"
