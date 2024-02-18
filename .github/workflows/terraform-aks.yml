@@ -2,8 +2,10 @@ name: 'Terraform-AKS'
 
 on:
   push:
-    branches: [ "main" ]
-    paths: ["aks"]
+    branches:  
+    - main 
+    paths: 
+    - "aks"
   pull_request:
     branches: [ "main" ]
     paths: ["aks"]
