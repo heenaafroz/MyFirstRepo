@@ -17,11 +17,11 @@ on:
 
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
-  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
-  ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_SECRET : ${{ secrets.ARM_CLIENT_SECRET}}
-
+  AZURE_CREDENTIALS: ${{secrets.AZURE_CREDENTIALS}}
   TF_DIR: "aks"
 
 #Special permissions required for OIDC authentication
@@ -59,6 +59,12 @@ jobs:
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+    #To build authorizer for Resource Manager API: Configure AzureCli Authorizer
+    - name: Az CLI login
+      uses: azure/login@v1
+      with:
+        creds: ${{ env.AZURE_CREDENTIALS }}
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
@@ -72,7 +78,7 @@ jobs:
  
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform plan -no-color 
+      run: terraform plan -no-color tf.plan 2>&1 > /tmmp/plan.txt
       working-directory: ${{env.TF_DIR}}      
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
