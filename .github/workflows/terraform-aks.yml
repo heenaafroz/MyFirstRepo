@@ -3,13 +3,14 @@ name: 'Terraform - AKS Plan'
 on:
   push:
     branches:
-    - main
-    paths:
-    - 'aks'
+    - master
+    paths: 
+    - "aks/**"
   pull_request:
     branches:
-    - main
-    paths: ["aks"]
+    - master
+    paths: 
+    - "aks/**"
 
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
