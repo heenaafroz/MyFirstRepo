@@ -1,24 +1,27 @@
-name: 'Terraform-AKS'
+name: 'Terraform - AKS Plan'
 
 on:
   push:
-    branches:  
-    - main 
+    branches:
+    - master
     paths: 
-    - 'aks'
+    - "aks/**"
   pull_request:
-    branches:  
-    - main 
-    paths: ["aks"]
+    branches:
+    - master
+    paths: 
+    - "aks/**"
 
+#These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
-  ARM_CLIENT_ID : ${{secrets.ARM_CLIENT_ID}}
+  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
   ARM_CLIENT_SECRET : ${{ secrets.ARM_CLIENT_SECRET}}
-  ARM_TENANT_ID : ${{ secrets.ARM_TENANT_ID}}
-  ARM_SUBSCRIPTION_ID : ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
   TF_DIR: "aks"
 
+#Special permissions required for OIDC authentication
 permissions:
   contents: read
   pull-requests: write
@@ -71,8 +74,7 @@ jobs:
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       run: terraform plan -no-color tf.plan 2>&1 > /tmmp/plan.txt
-      working-directory: ${{env.TF_DIR}}
-      
+      working-directory: ${{env.TF_DIR}}      
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
