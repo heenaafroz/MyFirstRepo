@@ -61,7 +61,7 @@ jobs:
 
     #To build authorizer for Resource Manager API: Configure AzureCli Authorizer
     - name: Az CLI login
-      uses: azure/login@v2.30.0
+      uses: azure/login@v2
       with:
         creds: ${{ env.AZURE_CREDENTIALS }}
 
