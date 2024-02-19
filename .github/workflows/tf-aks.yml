@@ -72,7 +72,7 @@ jobs:
  
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform plan -no-color tf.plan 2>&1 > /tmmp/plan.txt
+      run: terraform plan -no-color tf.plan 
       working-directory: ${{env.TF_DIR}}      
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
