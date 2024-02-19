@@ -2,8 +2,15 @@ name: 'Terraform - AKS Plan'
 
 on:
   push:
+<<<<<<< HEAD
     branches:
     - main
+=======
+    branches:  
+    - main 
+    paths: 
+    - 'aks'
+>>>>>>> 6e5cad21d4ac27443b0ae5a3c7c5cc57c2bb1d68
   pull_request:
     branches:
     - main
