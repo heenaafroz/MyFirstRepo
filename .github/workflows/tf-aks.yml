@@ -9,9 +9,10 @@ on:
   pull_request:
     branches:
     - main
-    paths: ["aks/**"]
+    paths:
+    - 'aks/**'
 
-#Updated yaml
+#Updated yaml file path
 
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
