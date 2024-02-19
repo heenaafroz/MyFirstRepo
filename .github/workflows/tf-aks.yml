@@ -5,12 +5,12 @@ on:
     branches:
     - main
     paths:
-    - 'aks/**'
+    - "aks/**"
   pull_request:
     branches:
     - main
     paths:
-    - 'aks/**'
+    - "aks/**"
 
 #Updated yaml file path
 
