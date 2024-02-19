@@ -5,11 +5,11 @@ on:
     branches:
     - main
     paths:
-    - 'aks'
+    - 'aks/***'
   pull_request:
     branches:
     - main
-    paths: ["aks"]
+    paths: ["aks/***"]
 
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
