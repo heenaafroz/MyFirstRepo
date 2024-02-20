@@ -1,4 +1,3 @@
-
 # Create subnets
 resource "azurerm_subnet" "mssql-subnet" {
   name                 = "subnet-mssql-poctest"
