@@ -1,4 +1,4 @@
-oname: 'Terraform - VNet Plan'
+name: 'Terraform - VNet Plan'
 
 on:
   workflow_dispatch:
