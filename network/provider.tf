@@ -2,7 +2,7 @@ terraform {
    backend "azurerm" {
     storage_account_name = "heenastore"
     container_name = "heenaaks"
-    key = "heenastatevnet.tfstate"
+    key = "vnet.tfstate"
     access_key = "X9pNzDvqwIlnKYh3/HaKZSeL1yUihU5H1qszjDmWaj3qdld8dEoCBp8zxqwSaygtJY9V5dqSVf0n+ASt7S0DTg=="
     
   }
