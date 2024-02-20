@@ -96,145 +96,54 @@ jobs:
       run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
       working-directory: ${{ env.TF_DIR }}
 
-    - uses: actions/github-script@v6.3.3
-      if: github.event_name == 'pull_request'
+  terraform-apply:
+    name: 'Terraform-Apply'
+    runs-on: ubuntu-latest
+    needs: terraform
+    environment: production
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
       with:
-        script: |
-          const fs = require("fs");
-          const { execSync } = require('child_process');
-          const plan = fs.readFileSync("/tmp/plan.txt", "utf8");
-          const maxGitHubBodyCharacters = 65536;
-          
-          function chunkSubstr(str, size) {
-            const numChunks = Math.ceil(str.length / size)
-            const chunks = new Array(numChunks)
-            for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
-              chunks[i] = str.substr(o, size)
-            }
-            return chunks
-          }
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+    #To build authorizer for Resource Manager API: Configure AzureCli Authorizer
+  #  - name: Az CLI login
+   #   uses: azure/login@v1
+    #  with:
+     #    azcliversion: 2.30.0
+      #   creds: ${{ env.AZURE_CREDENTIALS }}
 
-          try {
-              const filePath = '/tmp/plan.txt';
-              const fileContent = fs.readFileSync(filePath, 'utf8');
-              const lines = fileContent.split('\n');
-            
-              // Remove lines starting with "::debug::"
-              const filteredLines = lines.filter(line => !line.startsWith('::debug::'));
-              const updatedContent = filteredLines.join('\n');
-            
-              // Write the updated content back to the file
-              fs.writeFileSync(filePath, updatedContent);
-            
-              //console.log('Lines starting with "::debug::" have been removed.');
-            } catch (error) {
-              // Handle any errors that occurred
-              console.error(error);
-            }
+    - name: Az CLI login
+      uses: azure/login@v1
+      with:
+        creds: ${{ env.AZURE_CREDENTIALS }}
+      
 
-          function checkFile() {
-            let mustBeReplacedOutput;
-            let planToDestroyOutput;
-
-            try {
-              const fileContent = fs.readFileSync('/tmp/plan.txt', 'utf8');
-              const lines = fileContent.split('\n');
-
-              // Find all lines containing "will be destroyed"
-              const matchedLines = lines.filter(line => line.includes('will be destroyed'));
-
-              // Remove the first # character from each line if it exists
-              const modifiedLines = matchedLines.map(line => line.replace(/^\s*#/, ''));
-
-              // Output the modified lines
-              mustBeReplacedOutput = modifiedLines.join('\n');
-            } catch (error) {
-              // Handle any errors that occurred
-              console.error(error);
-            }
-
-            try {
-              const fileContent = fs.readFileSync('/tmp/plan.txt', 'utf8');
-              const lines = fileContent.split('\n');
-            
-              // Find the first line containing "* to destroy." with a number greater than 1
-              const planToDestroyLine = lines.find(line => {
-                const match = line.match(/(\d+) to destroy\./);
-                return match && parseInt(match[1]) > 1;
-              });
-            
-              planToDestroyOutput = planToDestroyLine ? planToDestroyLine.trim() : '';
-            } catch (error) {
-              // Handle any errors that occurred
-              console.error(error);
-            }
-            
-            return {
-              mustBeReplacedOutput,
-              planToDestroyOutput,
-            };
-          }
-
-          // Call the function and store the outputs in variables
-          //const outputs = checkFile();
-          //const mustBeReplacedResult = outputs.mustBeReplacedOutput;
-          //const planToDestroyResult = outputs.planToDestroyOutput;
-
-          // Use the variables as needed
-          //console.log(mustBeReplacedResult);
-          //console.log(planToDestroyResult);
-
-
-          // Call the function
-          var outputs = checkFile();
-          var mustBeReplacedResult = outputs.mustBeReplacedOutput;
-          var planToDestroyResult = outputs.planToDestroyOutput;
-
-          // Split the Terraform plan into chunks if it's too big and can't fit into the GitHub Action
-          var plans = chunkSubstr(plan, maxGitHubBodyCharacters); 
-          for (let i = 0; i < plans.length; i++) {
-            const output = `### ${{ inputs.plan-title }} Part # ${i + 1}
-            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Destory  💥💥💥\`${(outputs.mustBeReplacedOutput != '') ? outputs.mustBeReplacedOutput : 'N/A'}\`💥💥💥
-            #### Terraform Destory  💥💥💥\`${(outputs.planToDestroyOutput != '') ? outputs.planToDestroyOutput : 'N/A'}\`💥💥💥
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`\n
-            ${plans[i]}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.TF_DIR }}\`, Workflow: \`${{ github.workflow }}\`*`;   
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-          }
-
-    - name: Terraform Plan
-      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-      id: plan
-      run: terraform plan
-      continue-on-error: true
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
       working-directory: ${{ env.TF_DIR }}
+      
 
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-      id: apply
-      run: terraform apply --auto-approve
-      continue-on-error: false
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform validate
+      run: terraform validate -no-color
       working-directory: ${{ env.TF_DIR }}
-
-    # - name: Terraform Destroy
-    #   id: destroy
-    #   run: terraform destroy --auto-approve
-    #   working-directory: terraform/pre-prod/system
+ 
+    # Generates an execution plan for Terraform
+    - name: Terraform apply
+      run: terraform apply -no-color 
+      working-directory: ${{ env.TF_DIR }}
