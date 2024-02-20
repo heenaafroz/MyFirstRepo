@@ -145,5 +145,5 @@ jobs:
  
     # Generates an execution plan for Terraform
     - name: Terraform apply
-      run: terraform apply -no-color 
+      run: terraform apply --auto-approve
       working-directory: ${{ env.TF_DIR }}
