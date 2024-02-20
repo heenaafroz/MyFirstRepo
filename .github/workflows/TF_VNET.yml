@@ -89,9 +89,8 @@ jobs:
       run: terraform plan -no-color 
       working-directory: ${{ env.TF_DIR }}
 
-   
-     
-       - name: Terraform Show
+ 
+    - name: Terraform Show
       if: github.event_name == 'pull_request'
       id: show
       run: terraform show -no-color tf.plan 2>&1 > /tmp/plan.txt
