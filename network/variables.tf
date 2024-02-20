@@ -7,7 +7,7 @@ variable "name" {
 variable "tags" {
   type = map(any)
   default = {
-    "Environment"       = "POCtest" 
+    "Environment"       = "ASW - POCtest" 
   }
 }
 
