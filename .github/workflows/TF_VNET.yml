@@ -1,4 +1,4 @@
-name: 'Terraform - AKS Plan'
+name: 'Terraform - VNet Plan'
 
 on:
   workflow_dispatch:
