@@ -60,11 +60,16 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     #To build authorizer for Resource Manager API: Configure AzureCli Authorizer
+  #  - name: Az CLI login
+   #   uses: azure/login@v1
+    #  with:
+     #    azcliversion: 2.30.0
+      #   creds: ${{ env.AZURE_CREDENTIALS }}
+
     - name: Az CLI login
       uses: azure/login@v1
       with:
-         azcliversion: 2.30.0
-         creds: ${{ env.AZURE_CREDENTIALS }}
+        creds: ${{ env.AZURE_CREDENTIALS }}
       
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
